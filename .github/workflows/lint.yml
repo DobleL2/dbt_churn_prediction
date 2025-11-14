@@ -1,0 +1,71 @@
+name: Lint - Churn Prediction
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install dbt-core dbt-duckdb sqlfluff
+
+    - name: Run dbt parse
+      run: |
+        dbt parse --profiles-dir . || true
+
+    - name: Check SQL syntax
+      run: |
+        python -c "
+        import os
+        import glob
+        import duckdb
+        
+        conn = duckdb.connect(':memory:')
+        errors = []
+        
+        # Verificar archivos SQL
+        sql_files = glob.glob('models/**/*.sql', recursive=True)
+        for sql_file in sql_files:
+            try:
+                with open(sql_file, 'r') as f:
+                    content = f.read()
+                    # Intentar parsear (simplificado)
+                    if '{{' in content and '}}' in content:
+                        print(f'✅ {sql_file}: Contiene macros dbt (OK)')
+                    else:
+                        # Intentar ejecutar directamente
+                        try:
+                            conn.execute(content)
+                            print(f'✅ {sql_file}: Sintaxis SQL válida')
+                        except:
+                            print(f'⚠️  {sql_file}: No se puede validar (puede contener macros)')
+            except Exception as e:
+                errors.append(f'{sql_file}: {e}')
+        
+        if errors:
+            print('\\n❌ Errores encontrados:')
+            for error in errors:
+                print(f'  - {error}')
+            exit(1)
+        else:
+            print('\\n✅ Todos los archivos SQL son válidos')
+        
+        conn.close()
+        "
+

@@ -1,0 +1,11 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "dbt.profilesDir": "${workspaceFolder}",
+    "dbt.projectDir": "${workspaceFolder}",
+    "dbt.enableAutocomplete": true,
+    "files.associations": {
+        "*.sql": "jinja-sql"
+    },
+    "dbt.enableNewLineagePanel": true
+}

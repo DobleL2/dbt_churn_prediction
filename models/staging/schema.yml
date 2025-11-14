@@ -1,0 +1,156 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: users
+        description: "Tabla base de usuarios"
+        columns:
+          - name: user_id
+            description: "ID único del usuario"
+            tests:
+              - unique
+              - not_null
+          - name: email
+            description: "Correo electrónico del usuario"
+          - name: signup_date
+            description: "Fecha de registro"
+          - name: country
+            description: "País del usuario"
+          - name: plan_type
+            description: "Tipo de plan (free, pro, premium)"
+          - name: status
+            description: "Estado del usuario (active, deactivated)"
+          - name: churn_date
+            description: "Fecha de churn si aplica"
+      
+      - name: app_events
+        description: "Eventos generados por usuarios"
+        columns:
+          - name: event_id
+            description: "ID único del evento"
+            tests:
+              - unique
+              - not_null
+          - name: user_id
+            description: "ID del usuario"
+            tests:
+              - relationships:
+                  to: source('raw', 'users')
+                  field: user_id
+          - name: event_timestamp
+            description: "Timestamp del evento"
+          - name: event_type
+            description: "Tipo de evento"
+      
+      - name: billing
+        description: "Historial de pagos"
+        columns:
+          - name: billing_id
+            description: "ID único de facturación"
+            tests:
+              - unique
+              - not_null
+          - name: user_id
+            description: "ID del usuario"
+            tests:
+              - relationships:
+                  to: source('raw', 'users')
+                  field: user_id
+      
+      - name: support_tickets
+        description: "Tickets de soporte"
+        columns:
+          - name: ticket_id
+            description: "ID único del ticket"
+            tests:
+              - unique
+              - not_null
+          - name: user_id
+            description: "ID del usuario"
+            tests:
+              - relationships:
+                  to: source('raw', 'users')
+                  field: user_id
+      
+      - name: marketing
+        description: "Campañas de marketing"
+        columns:
+          - name: campaign_id
+            description: "ID único de campaña"
+            tests:
+              - unique
+              - not_null
+          - name: user_id
+            description: "ID del usuario"
+            tests:
+              - relationships:
+                  to: source('raw', 'users')
+                  field: user_id
+
+models:
+  - name: stg_users
+    description: "Modelo staging de usuarios con campos calculados"
+    columns:
+      - name: user_id
+        tests:
+          - unique
+          - not_null
+      - name: is_churned
+        description: "Flag booleano indicando si el usuario hizo churn"
+      - name: days_to_churn
+        description: "Días desde signup hasta churn"
+  
+  - name: stg_app_events
+    description: "Modelo staging de eventos de aplicación"
+    columns:
+      - name: event_id
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        tests:
+          - relationships:
+              to: ref('stg_users')
+              field: user_id
+  
+  - name: stg_billing
+    description: "Modelo staging de facturación"
+    columns:
+      - name: billing_id
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        tests:
+          - relationships:
+              to: ref('stg_users')
+              field: user_id
+  
+  - name: stg_support_tickets
+    description: "Modelo staging de tickets de soporte"
+    columns:
+      - name: ticket_id
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        tests:
+          - relationships:
+              to: ref('stg_users')
+              field: user_id
+  
+  - name: stg_marketing
+    description: "Modelo staging de campañas de marketing"
+    columns:
+      - name: campaign_id
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        tests:
+          - relationships:
+              to: ref('stg_users')
+              field: user_id
+

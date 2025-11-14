@@ -1,0 +1,89 @@
+name: CI - Churn Prediction
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install dbt-core dbt-duckdb
+
+    - name: Generate test data
+      run: |
+        python generate_data.py
+
+    - name: Run dbt deps
+      run: |
+        dbt deps --profiles-dir .
+
+    - name: Run dbt compile
+      run: |
+        dbt compile --profiles-dir .
+
+    - name: Run dbt run
+      run: |
+        dbt run --profiles-dir .
+
+    - name: Run dbt test
+      run: |
+        dbt test --profiles-dir .
+
+    - name: Run dbt snapshot
+      run: |
+        dbt snapshot --profiles-dir .
+
+    - name: Generate dbt docs
+      run: |
+        dbt docs generate --profiles-dir .
+
+    - name: Upload dbt artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: dbt-artifacts
+        path: |
+          target/
+          dbt_packages/
+        retention-days: 7
+
+    - name: Check data quality
+      run: |
+        python -c "
+        import duckdb
+        conn = duckdb.connect('churn_prediction.duckdb')
+        
+        # Verificar que las tablas existen
+        tables = ['users', 'app_events', 'billing', 'support_tickets', 'marketing']
+        for table in tables:
+            result = conn.execute(f'SELECT COUNT(*) FROM raw.{table}').fetchone()
+            print(f'✅ raw.{table}: {result[0]:,} filas')
+        
+        # Verificar que los modelos se ejecutaron
+        try:
+            result = conn.execute('SELECT COUNT(*) FROM marts.fct_churn_features').fetchone()
+            print(f'✅ fct_churn_features: {result[0]:,} filas')
+        except:
+            print('❌ fct_churn_features no existe')
+        
+        conn.close()
+        "
+

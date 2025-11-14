@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: fct_churn_features
+    description: "Tabla final con features para modelo de churn prediction. Contiene más de 30 features por usuario."
+    columns:
+      - name: user_id
+        description: "ID único del usuario"
+        tests:
+          - unique
+          - not_null
+      - name: is_churned
+        description: "Variable target: indica si el usuario hizo churn"
+      - name: days_to_churn
+        description: "Días desde signup hasta churn (null si no hizo churn)"
+      - name: total_events
+        description: "Total de eventos generados por el usuario"
+      - name: active_days
+        description: "Días activos del usuario"
+      - name: total_billing_records
+        description: "Total de registros de facturación"
+      - name: total_tickets
+        description: "Total de tickets de soporte"
+      - name: total_campaigns
+        description: "Total de campañas de marketing recibidas"
+      - name: activity_rate
+        description: "Tasa de actividad (días activos / días desde signup)"
+      - name: payment_success_rate
+        description: "Tasa de éxito de pagos"
+      - name: ticket_resolution_rate
+        description: "Tasa de resolución de tickets"
+      - name: campaign_engagement_rate
+        description: "Tasa de engagement con campañas"
+

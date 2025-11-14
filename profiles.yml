@@ -1,0 +1,11 @@
+churn_prediction:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'churn_prediction.duckdb'
+      schema: main
+      extensions:
+        - httpfs
+        - parquet
+

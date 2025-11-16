@@ -7,3 +7,4 @@ dbt_packages/
 __pycache__/
 *.pyc
 
+dbt.log

@@ -1,4 +1,4 @@
-# 🚀 Proyecto 1: Data Warehouse + Feature Store para Churn Prediction
+# 🚀 Data Warehouse + Feature Store para Churn Prediction
 
 ## 📌 Descripción
 
